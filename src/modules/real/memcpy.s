@@ -1,9 +1,9 @@
 memcpy:
-    ; Construct stackframe.
+    ; Construct stackframe
     push    ebp
     mov     ebp, esp
     
-    ; Save arguments to registers.
+    ; Store registers
     push    ecx
     push    esi
     push    edi
@@ -16,12 +16,12 @@ memcpy:
 
     rep     movsb ; while (*edi++ == *esi++)
 
-    ; Restore registers.
+    ; Restore registers
     pop     edi
     pop     esi
     pop     ecx
 
-    ; Remove stackframe.
+    ; Clear stackframe
     mov     esp, ebp
     pop     ebp
 
