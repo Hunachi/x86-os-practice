@@ -1,28 +1,28 @@
 memcpy:
     ; Construct stackframe
-    push    ebp
-    mov     ebp, esp
+    push    bp
+    mov     bp, sp
     
     ; Store registers
-    push    ecx
-    push    esi
-    push    edi
+    push    cx
+    push    si
+    push    di
     
     ; Copy each byte.
     cld
-    mov     edi, [ebp + 8]
-    mov     esi, [ebp + 12]
-    mov     ecx, [ebp + 16]
+    mov     di, [bp + 8]
+    mov     si, [bp + 12]
+    mov     cx, [bp + 16]
 
     rep     movsb ; while (*edi++ == *esi++)
 
     ; Restore registers
-    pop     edi
-    pop     esi
-    pop     ecx
+    pop     di
+    pop     si
+    pop     cx
 
     ; Clear stackframe
-    mov     esp, ebp
-    pop     ebp
+    mov     sp, bp
+    pop     bp
 
     ret
