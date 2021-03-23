@@ -1,0 +1,23 @@
+     1                                  ; Reference: 作って理解するOS x86系コンピュータを動かす理論と実装 (https://gihyo.jp/book/2019/978-4-297-10847-2)
+     2                                  
+     3                                      BOOT_LOAD   equ     0x7C00 ; Address of boot program
+     4                                  
+     5                                  ipl:
+     6 00000000 FA                          cli     ; Disabling Inerrupt
+     7                                  
+     8 00000001 B80000                      mov     ax, 0x0000
+     9 00000004 8ED8                        mov     ds, ax
+    10 00000006 8EC0                        mov     es, ax
+    11 00000008 8ED0                        mov     ss, ax
+    12 0000000A BC007C                      mov     sp, BOOT_LOAD
+    13                                  
+    14 0000000D FB                          sti
+    15                                  
+    16 0000000E 8816[1400]                  mov     [BOOT.DRIVE], dl
+    17                                  
+    18 00000012 EBFE                        jmp     $
+    19                                  
+    20                                  ALIGN 2, db 0
+    21                                  BOOT:
+    22 00000014 0000                    .DRIVE:     dw 0
+    23                                  
