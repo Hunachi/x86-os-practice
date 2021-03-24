@@ -1,0 +1,81 @@
+     1                                  ; Reference: 作って理解するOS x86系コンピュータを動かす理論と実装 (https://gihyo.jp/book/2019/978-4-297-10847-2)
+     2                                  
+     3                                      BOOT_LOAD   equ     0x7C00 ; Address of boot program
+     4                                  
+     5                                      ORG     BOOT_LOAD          ; Instract load address to assembler.
+     6                                  
+     7                                  %include    "../include/macro.s"
+     8                              <1> %macro  cdecl 1-*.nolist
+     9                              <1> 
+    10                              <1>     %rep    %0 - 1
+    11                              <1>         push    %{-1:-1}
+    12                              <1>         %rotate -1
+    13                              <1>     %endrep
+    14                              <1>     %rotate -1
+    15                              <1> 
+    16                              <1>         call    %1
+    17                              <1>     
+    18                              <1>     %if 1 < %0
+    19                              <1>         add     sp, (__BITS__ >> 3) * (%0 - 1)
+    20                              <1>     %endif
+    21                              <1> 
+    22                              <1> %endmacro
+     8                                  ; *****************
+     9                                  ;    Entory Point 
+    10                                  ; *****************
+    11                                  entry:
+    12 00000000 EB58                        jmp     ipl
+    13 00000002 90<rep 58h>                 times    90-($-$$) db 0x90 ; BPB(BOPS Parameter Block)
+    14                                  
+    15                                  ipl:
+    16 0000005A FA                          cli     ; Disabling Inerrupt
+    17                                  
+    18 0000005B B80000                      mov     ax, 0x0000
+    19 0000005E 8ED8                        mov     ds, ax
+    20 00000060 8EC0                        mov     es, ax
+    21 00000062 8ED0                        mov     ss, ax
+    22 00000064 BC007C                      mov     sp, BOOT_LOAD
+    23                                  
+    24 00000067 FB                          sti
+    25                                  
+    26 00000068 8816[A600]                  mov     [BOOT.DRIVE], dl
+    27                                  
+    28                                      ; Print words
+    29 0000006C 6A48E8370083C402            cdecl   putc, word 'H'
+    30 00000074 6A75E82F0083C402            cdecl   putc, word 'u'
+    31 0000007C 6A6EE8270083C402            cdecl   putc, word 'n'
+    32 00000084 6A61E81F0083C402            cdecl   putc, word 'a'
+    33 0000008C 6A63E8170083C402            cdecl   putc, word 'c'
+    34 00000094 6A68E80F0083C402            cdecl   putc, word 'h'
+    35 0000009C 6A69E8070083C402            cdecl   putc, word 'i'
+    36                                  
+    37 000000A4 EBFE                        jmp     $
+    38                                  
+    39                                  ALIGN 2, db 0
+    40                                  BOOT:
+    41 000000A6 0000                    .DRIVE:     dw 0
+    42                                  
+    43                                  ; Module
+    44                                  %include    "../modules/real/putc.s"
+    45                              <1> putc:
+    46 000000A8 55                  <1>     push    bp
+    47 000000A9 89E5                <1>     mov     bp, sp
+    48                              <1> 
+    49 000000AB 50                  <1>     push    ax
+    50 000000AC 53                  <1>     push    bx
+    51                              <1> 
+    52 000000AD 8A4604              <1>     mov     al, [bp + 4]    ; AL = output word
+    53 000000B0 B40E                <1>     mov     ah, 0x0E        ; teletype's single word output
+    54 000000B2 BB0000              <1>     mov     bx, 0x0000      ; setting page number and word's color 0
+    55 000000B5 CD10                <1>     int     0x10            ; call video BIOS.
+    56                              <1> 
+    57 000000B7 5B                  <1>     pop     bx
+    58 000000B8 58                  <1>     pop     ax
+    59                              <1> 
+    60 000000B9 89EC                <1>     mov     sp, bp
+    61 000000BB 5D                  <1>     pop     bp
+    62                              <1> 
+    63 000000BC C3                  <1>     ret
+    45                                  
+    46 000000BD 00<rep 141h>                times    510-($-$$) db 0x00
+    47 000001FE 55AA                        db      0x55, 0xAA
