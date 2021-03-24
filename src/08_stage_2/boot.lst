@@ -1,0 +1,255 @@
+     1                                  ; Reference: 作って理解するOS x86系コンピュータを動かす理論と実装 (https://gihyo.jp/book/2019/978-4-297-10847-2)
+     2                                  
+     3                                      BOOT_LOAD   equ     0x7C00 ; Address of boot program
+     4                                  
+     5                                      ORG     BOOT_LOAD          ; Instract load address to assembler.
+     6                                  
+     7                                  %include    "../include/macro.s"
+     8                              <1> %macro  cdecl 1-*.nolist
+     9                              <1> 
+    10                              <1>     %rep    %0 - 1
+    11                              <1>         push    %{-1:-1}
+    12                              <1>         %rotate -1
+    13                              <1>     %endrep
+    14                              <1>     %rotate -1
+    15                              <1> 
+    16                              <1>         call    %1
+    17                              <1>     
+    18                              <1>     %if 1 < %0
+    19                              <1>         add     sp, (__BITS__ >> 3) * (%0 - 1)
+    20                              <1>     %endif
+    21                              <1> 
+    22                              <1> %endmacro
+     8                                  ; *****************
+     9                                  ;    Entory Point 
+    10                                  ; *****************
+    11                                  entry:
+    12 00000000 EB58                        jmp     ipl
+    13 00000002 90<rep 58h>                 times    90-($-$$) db 0x90 ; BPB(BOPS Parameter Block)
+    14                                  
+    15                                  ipl:
+    16 0000005A FA                          cli     ; Disabling Inerrupt
+    17                                  
+    18 0000005B B80000                      mov     ax, 0x0000
+    19 0000005E 8ED8                        mov     ds, ax
+    20 00000060 8EC0                        mov     es, ax
+    21 00000062 8ED0                        mov     ss, ax
+    22 00000064 BC007C                      mov     sp, BOOT_LOAD
+    23                                  
+    24 00000067 FB                          sti
+    25                                  
+    26 00000068 8816[C200]                  mov     [BOOT.DRIVE], dl
+    27                                  
+    28 0000006C 68[9800]E8520083C4-         cdecl   puts, .s0
+    28 00000074 02                 
+    29                                  
+    30                                      ; Read next 512 byte
+    31 00000075 B402                        mov     ah, 0x02        ; AH = 読み込み命令
+    32 00000077 B001                        mov     al, 1           ; AL = 読み込みセクタ数
+    33 00000079 B90200                      mov     cx, 0x0002      ; CX = シリンダ/セクタ
+    34 0000007C B600                        mov     dh, 0x00
+    35 0000007E 8A16[C200]                  mov     dl, [BOOT.DRIVE]
+    36 00000082 BB007E                      mov     bx, 0x7C00 + 512
+    37 00000085 CD13                        int     0x13
+    38                                  .10Q:
+    39 00000087 730C                        jnc     .10E
+    40                                  .10T:
+    41 00000089 68[B000]E8350083C4-         cdecl   puts, .e0
+    41 00000091 02                 
+    42 00000092 E8CE00                      call    reboot
+    43                                  .10E:
+    44                                  
+    45                                      ; Jamp nest stage
+    46 00000095 E96801                      jmp     stage_2
+    47                                  
+    48 00000098 426F6F74696E672048-     .s0     db  "Booting HunachiOS....", 0x0A, 0x0D, 0
+    48 000000A1 756E616368694F532E-
+    48 000000AA 2E2E2E0A0D00       
+    49 000000B0 4572726F723A736563-     .e0     db  "Error:sector read", 0
+    49 000000B9 746F72207265616400 
+    50                                  
+    51                                  ALIGN 2, db 0
+    52                                  BOOT:
+    53 000000C2 0000                    .DRIVE:     dw 0
+    54                                  
+    55                                  ; Module
+    56                                  %include    "../modules/real/puts.s"
+    57                              <1> puts:
+    58 000000C4 55                  <1>     push    bp
+    59 000000C5 89E5                <1>     mov     bp, sp
+    60                              <1> 
+    61 000000C7 50                  <1>     push    ax
+    62 000000C8 53                  <1>     push    bx
+    63 000000C9 56                  <1>     push    si
+    64                              <1> 
+    65 000000CA 8B7604              <1>     mov     si, [bp + 4]    ; Address of string.
+    66                              <1> 
+    67                              <1>     ; Start program
+    68 000000CD B40E                <1>     mov     ah, 0x0E        ; teletype's single word output
+    69 000000CF BB0000              <1>     mov     bx, 0x0000      ; setting page number and word's color 0
+    70 000000D2 FC                  <1>     cld                     ; DF = 0 ; Add Address.
+    71                              <1> .10L:
+    72 000000D3 AC                  <1>     lodsb                   ; al = *si++;
+    73                              <1> 
+    74 000000D4 3C00                <1>     cmp     al, 0
+    75 000000D6 7404                <1>     je      .10E
+    76                              <1> 
+    77 000000D8 CD10                <1>     int     0x10            ; call video BIOS.
+    78 000000DA EBF7                <1>     jmp     .10L
+    79                              <1> 
+    80                              <1> .10E:
+    81 000000DC 5E                  <1>     pop     si
+    82 000000DD 5B                  <1>     pop     bx
+    83 000000DE 58                  <1>     pop     ax
+    84                              <1> 
+    85 000000DF 89EC                <1>     mov     sp, bp
+    86 000000E1 5D                  <1>     pop     bp
+    87                              <1> 
+    88 000000E2 C3                  <1>     ret
+    57                                  %include    "../modules/real/itoa.s"
+    58                              <1> ; A Function convert Number to string
+    59                              <1> itoa:
+    60                              <1>         ; +12 Flag | +10 Cardinal Number | +8 Buffer Size | +6 Buffer Address | +4 Number | +2 IP(Return Address) | 0 BP 
+    61 000000E3 55                  <1>         push    bp                          
+    62 000000E4 89E5                <1>         mov     bp, sp         
+    63                              <1> 
+    64 000000E6 50                  <1>         push    ax
+    65 000000E7 53                  <1>         push    bx
+    66 000000E8 51                  <1>         push    cx
+    67 000000E9 52                  <1>         push    dx
+    68 000000EA 56                  <1>         push    si
+    69 000000EB 57                  <1>         push    di
+    70                              <1> 
+    71                              <1>         ; Get Arguments
+    72 000000EC 8B4604              <1>         mov     ax, [bp + 4]                
+    73 000000EF 8B7606              <1>         mov     si, [bp + 6]                
+    74 000000F2 8B4E08              <1>         mov     cx, [bp + 8]               
+    75                              <1> 
+    76 000000F5 89F7                <1>         mov     di, si      ; di = &si[size - 1] ; last item of Buffer             
+    77 000000F7 01CF                <1>         add     di, cx                      
+    78 000000F9 4F                  <1>         dec     di                          
+    79                              <1> 
+    80 000000FA 8B5E0C              <1>         mov     bx, word [bp + 12]          
+    81                              <1> 
+    82                              <1>         ; Signed judg
+    83                              <1>         ; if (bx & 0x01) { // Signed
+    84                              <1>         ;   if (ax < 0) {
+    85                              <1>         ;       bx |= 2 // set flag for display +-.
+    86                              <1>         ;   }  
+    87                              <1>         ; }
+    88 000000FD F7C30100            <1>         test    bx, 0b0001                  
+    89 00000101 7408                <1> .10Q:   je      .10E                         
+    90 00000103 83F800              <1>         cmp     ax, 0                       
+    91 00000106 7D03                <1> .12Q:   jge     .12E                        
+    92 00000108 83CB02              <1>         or      bx, 0b0010                  
+    93                              <1> .12E:
+    94                              <1> .10E:
+    95                              <1> 
+    96                              <1>         ; Signed output judg
+    97                              <1>         ;if (bx & 0x02) { // Check Flag which setting above code.
+    98                              <1>         ;    if (ax < 0) { 
+    99                              <1>         ;        ax *= -1 // Reverse sign 
+   100                              <1>         ;        *si = '-'
+   101                              <1>         ;    } else {
+   102                              <1>         ;        *si = '+'
+   103                              <1>         ;    }
+   104                              <1>         ;    cx--;
+   105                              <1>         ;}
+   106 0000010B F7C30200            <1>         test    bx, 0b0010                  
+   107 0000010F 7410                <1> .20Q:   je      .20E                         
+   108 00000111 83F800              <1>         cmp     ax, 0                       
+   109 00000114 7D07                <1> .22Q:   jge     .22F                        
+   110 00000116 F7D8                <1>         neg     ax                          
+   111 00000118 C6042D              <1>         mov     [si], byte '-'              
+   112 0000011B EB03                <1>         jmp     .22E
+   113                              <1> .22F:
+   114 0000011D C6042B              <1>         mov     [si], byte '+'              
+   115                              <1> .22E:
+   116 00000120 49                  <1>         dec     cx
+   117                              <1> .20E:
+   118                              <1> 
+   119                              <1>         ; Convert to ASCII Code
+   120 00000121 8B5E0A              <1>         mov     bx, [bp + 10]               
+   121                              <1> .30L:
+   122 00000124 BA0000              <1>         mov     dx, 0
+   123 00000127 F7F3                <1>         div     bx
+   124                              <1> 
+   125 00000129 89D6                <1>         mov     si, dx
+   126 0000012B 8A94[5301]          <1>         mov     dl, byte [.ascii + si]
+   127                              <1> 
+   128 0000012F 8815                <1>         mov     [di], dl
+   129 00000131 4F                  <1>         dec     di
+   130                              <1> 
+   131 00000132 83F800              <1>         cmp     ax, 0
+   132 00000135 E0ED                <1>         loopnz  .30L
+   133                              <1>     
+   134                              <1> .30E:
+   135                              <1>         ; Fill in space
+   136 00000137 83F900              <1>         cmp     cx, 0
+   137 0000013A 740D                <1> .40Q:   je      .40E
+   138 0000013C B020                <1>         mov     al, ' '
+   139 0000013E 837E0C04            <1>         cmp     [bp + 12], word 0b0100
+   140 00000142 7502                <1> .42Q:   jne     .42E
+   141 00000144 B030                <1>         mov     al, '0'
+   142                              <1> .42E:
+   143 00000146 FD                  <1>         std
+   144 00000147 F3AA                <1>         rep     stosb
+   145                              <1> .40E:
+   146 00000149 5F                  <1>         pop     di
+   147 0000014A 5E                  <1>         pop     si
+   148 0000014B 5A                  <1>         pop     dx
+   149 0000014C 59                  <1>         pop     cx
+   150 0000014D 5B                  <1>         pop     bx
+   151 0000014E 58                  <1>         pop     ax
+   152                              <1> 
+   153 0000014F 89EC                <1>         mov     sp, bp
+   154 00000151 5D                  <1>         pop     bp
+   155                              <1> 
+   156 00000152 C3                  <1>         ret
+   157                              <1> 
+   158 00000153 303132333435363738- <1> .ascii  db      "0123456789ABCDEF"          ; table for convert
+   158 0000015C 39414243444546      <1>
+    58                                  %include    "../modules/real/reboot.s"
+    59                              <1> reboot:
+    60                              <1>         ; Display message
+    61 00000163 68[7F01]E85BFF83C4- <1>         cdecl   puts, .s0
+    61 0000016B 02                  <1>
+    62                              <1> 
+    63                              <1>         ; Wait input from keyboard
+    64                              <1> .10L:   
+    65 0000016C B410                <1>         mov     ah, 0x10
+    66 0000016E CD16                <1>         int     0x16
+    67                              <1> 
+    68 00000170 3C20                <1>         cmp     al, ' '
+    69 00000172 75F8                <1>         jne     .10L
+    70                              <1> 
+    71                              <1>         ; Display retuen
+    72 00000174 68[9D01]E84AFF83C4- <1>         cdecl    puts, .s1
+    72 0000017C 02                  <1>
+    73                              <1> 
+    74                              <1>         ; Reboot
+    75 0000017D CD19                <1>         int     0x19        ; BIOS(0x19)
+    76                              <1> 
+    77 0000017F 0A0D50757368205350- <1> .s0     db  0x0A, 0x0D, "Push SPACE key to reboot...", 0
+    77 00000188 414345206B65792074- <1>
+    77 00000191 6F207265626F6F742E- <1>
+    77 0000019A 2E2E00              <1>
+    78 0000019D 0A0D0A0D00          <1> .s1     db  0x0A, 0x0D, 0x0A, 0x0D, 0
+    79                              <1> 
+    59                                  
+    60 000001A2 00<rep 5Ch>                 times    510-($-$$) db 0x00
+    61 000001FE 55AA                        db      0x55, 0xAA
+    62                                  
+    63                                  stage_2:
+    64 00000200 68[0B02]E8BEFE83C4-         cdecl   puts, .s0
+    64 00000208 02                 
+    65                                  
+    66                                      ; Finish program
+    67 00000209 EBFE                        jmp     $
+    68                                  
+    69 0000020B 326564207374616765-     .s0     db "2ed stage...", 0x0A, 0x0D, 0
+    69 00000214 2E2E2E0A0D00       
+    70                                  
+    71                                  ; Padding (This file size should be 8K.)
+    72 0000021A 00<rep 1DE6h>               times (1024 * 8) - ($ - $$)     db 0
+    73                                      
