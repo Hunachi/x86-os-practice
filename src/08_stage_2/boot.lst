@@ -20,6 +20,13 @@
     20                              <1>     %endif
     21                              <1> 
     22                              <1> %endmacro
+    23                              <1> 
+    24                              <1> struc drive
+    25 00000000 ????                <1>         .no         resw    1       ; Drive Number
+    26 00000002 ????                <1>         .cyln       resw    1       ; Cylinder
+    27 00000004 ????                <1>         .head       resw    1       ; HEAD
+    28 00000006 ????                <1>         .sect       resw    1       ; Sector
+    29                              <1> endstruc
      8                                  ; *****************
      9                                  ;    Entory Point 
     10                                  ; *****************
