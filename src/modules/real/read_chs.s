@@ -30,7 +30,7 @@ read_chs:
     mov     ah, 0x02
     mov     al, [bp + 6]
 
-    int     0x13
+    int     0x13                    ; cf = BIOS(0x13, 0x02)
     jnc     .11E
 
     mov     al, 0
