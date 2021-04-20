@@ -16,7 +16,7 @@ get_drive_param:
 
     mov     di, ax
 
-    mov     ah, 8
+    mov     ah, 0x08
     mov     dl, [si, drive.no]
     int     0x13
 .10Q:
@@ -50,7 +50,4 @@ get_drive_param:
     pop     bp
 
     ret
-    
-
-
-
+ 
