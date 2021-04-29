@@ -1,5 +1,5 @@
 ; キーボードコントローラバッファ書き込み関数
-KBC_Data_Writer:
+KBC_Data_Write:
 
     push    bp
     mov     bp, sp
@@ -9,7 +9,7 @@ KBC_Data_Writer:
     mov     cx, 0
 
 .10L:
-    in      al, 0x06
+    in      al, 0x64
     test    al, 0x02
     loopnz .10L
 
@@ -17,7 +17,7 @@ KBC_Data_Writer:
     jz      .20E
 
     mov     al, [bp + 4]
-    out     0x06, al
+    out     0x60, al
 .20E:
     mov     ax, cx
 
@@ -32,7 +32,7 @@ KBC_Data_Writer:
 KBC_Data_Read:
 
     push    bp
-    mov     sp, bp
+    mov     bp, sp
     push    cx
     push    di
 
@@ -40,7 +40,7 @@ KBC_Data_Read:
 .10L:
     in      al, 0x64
     test    al ,0x01
-    loopnz  .10L
+    loopz  .10L
 
     cmp     cx, 0
     jz      .20E
@@ -52,3 +52,40 @@ KBC_Data_Read:
     mov     [di + 0], ax
 .20E:
     mov     ax, cx
+
+    pop     di
+    pop     cx
+
+    mov     sp, bp 
+    pop     bp
+
+    ret
+
+
+; Display command
+KBC_Cmd_Write:									
+    push	bp								
+	mov		bp, sp							
+
+	push	cx
+    
+	mov		cx, 0							
+.10L:
+    in      al, 0x64
+    test    al, 0x02
+    loopnz  .10L
+
+    cmp     cx, 0
+    jz      .20E
+
+    mov     al, [bp + 4]
+    out     0x64, al
+.20E:
+    mov     ax, cx
+
+    pop     cx
+
+    mov     sp, bp
+    pop     bp
+
+    ret
