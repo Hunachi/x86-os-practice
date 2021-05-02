@@ -9,3 +9,4 @@ kernel:
 
     ; Padding
     times KERNEL_SIZE - ($ - $$) db 0x00
+    
