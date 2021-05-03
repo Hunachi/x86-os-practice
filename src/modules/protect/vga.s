@@ -114,3 +114,41 @@ vram_font_copy:
     pop     ebp
 
     ret
+
+; For dot
+vram_bit_copy:
+
+    push    ebp
+    mov     ebp, esp
+
+    push    eax
+    push    ebx
+    push    edi
+
+    mov     edi, [ebp + 12] ;VRAM address
+    movzx   eax, byte[ebp + 16]
+    movzx   ebx, word[ebp + 20]
+
+    ; dot data always use transparent mode
+    ; so that create only front maskdata. 
+    test    bl, al
+    setz    bl
+    dec     bl
+
+    mov     al, [ebp + 8]
+    mov     ah, al
+    not     ah
+
+    and     ah, [edi]   ; current value & !putout bit pattern
+    and     al, bl      ; displaying color & output bit pattern
+    or      al, ah
+    mov     [edi], al
+
+    pop     edi
+    pop     ebx
+    pop     eax
+
+    mov     esp, ebp
+    pop     ebp
+
+    ret     
