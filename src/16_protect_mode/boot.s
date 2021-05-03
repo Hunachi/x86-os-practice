@@ -260,7 +260,7 @@ stage_6:
     mov     ax, 0x0012
     int     0x10
 
-    jmp     $
+    jmp     stage_7
 
 .s0:    db "6th stage..", 0x0A, 0x0D, 0x0A, 0x0D
 .e0:    db " [Push SPACE key to protect mode...]", 0x0A, 0x0D, 0

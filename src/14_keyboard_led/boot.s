@@ -208,7 +208,7 @@ stage_4:
 												;   }
 	jmp		.11E
 .11F:
-    cdecl   itoa, word [.key], .e1, 2, 16, 0b0100
+    cdecl   ito word [.key], .e1, 2, 16, 0b0100
     cdecl   puts, .e0
 .11E:
     cdecl   KBC_Cmd_Write, 0xAE
