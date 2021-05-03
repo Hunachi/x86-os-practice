@@ -265,7 +265,60 @@ stage_6:
 .s0:    db "6th stage..", 0x0A, 0x0D, 0x0A, 0x0D
 .e0:    db " [Push SPACE key to protect mode...]", 0x0A, 0x0D, 0
 
+; Glabal Discripter Table
+ALIGN 4, db 0
+GDT:    dq  0x00_0000_000000_0000   ; NULL
+.cs:    dq  0x00_CF9A_000000_FFFF   ; Selector For Code
+.ds:    dq  0x00_CF92_000000_FFFF   ; Selector For Data
+.gdt_end:
+
+; Glabal Discripter Table Register
+GDTR:   dw  GDT.gdt_end - GDT - 1   ; GDT limit address
+        dd  GDT                     ; GDT address
+
+SEL_CODE    equ GDT.cs - GDT
+SEL_DATA    equ GDT.ds - GDT
+
+; Interrapt Discripter Table Register(dummy)
+IDTR:   dw  0                       ; IDT limit
+        dd  0                       ; IDT location
+
+stage_7:
+    cli
+
+    lgdt    [GDTR]
+    lidt    [IDTR]
+
+    ; Set PE bit to migrate Protect mode.
+    mov     eax, cr0
+    or      ax, 1
+    mov     cr0, eax
+
+    jmp     $ + 2               ; look-ahead Clear
+
+[BITS 32]
+    DB      0x66
+    jmp     SEL_CODE:CODE_32
+
+CODE_32:
+    ; init selector
+    mov     ax, SEL_DATA
+    mov     ds, ax
+    mov     es, ax
+    mov     fs, ax
+    mov     gs, ax
+    mov     ss, ax
+
+    ; Copy kernel code
+    mov     ecx, (KERNEL_SIZE) / 4
+    mov     esi, BOOT_END
+    mov     edi, KERNEL_LOAD
+    cdl 
+    rep movsd
+
+    ; move kernel processing
+    jmp     KERNEL_LOAD
 
 ; Padding (This file size should be 8K.)
     times   BOOT_SIZE - ($ - $$)     db 0
-    
+
