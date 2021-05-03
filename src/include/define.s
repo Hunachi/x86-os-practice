@@ -1,4 +1,4 @@
-BOOT_LOAD   equ     0x7c00
+BOOT_LOAD   equ     0x7C00
 KERNEL_LOAD equ     0x0010_1000
 
 BOOT_SIZE   equ     (1024 * 8)

@@ -12,4 +12,4 @@ rm boot.bin kernel.bin kernel.lst boot.lst
 
 bochs -q -f ../../env/.bochsrc -rc ../../env/cmd.init
 
-rm boot.img
+rm boot.img 
