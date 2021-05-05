@@ -1,3 +1,5 @@
+%define     USE_SYSTEM_CALL
+
 %include	"../include/define.s"
 %include	"../include/macro.s"
 
@@ -42,6 +44,8 @@ kernel:
     set_vect    0x20, int_timer     ; Apply Timer interrupt
     set_vect    0x21, int_keyboard  ; Apply KBC interrupt
     set_vect    0x28, int_rtc       ; Apply RTC interrupt
+    set_vect    0x81, trap_gate1, word 0xEF00   ; Apply trapgate:Display 1 word
+    set_vect    0x82, trap_gate2, word 0xEF00   ; Apply trapgate:Display a dot
 
     ; Allow Device interrupt
     cdecl   rtc_int_en, 0x10
@@ -111,6 +115,7 @@ RTC_TIME:	dd 0
 %include	"../modules/protect/timer.s"
 %include	"../modules/protect/draw_rotation_bar.s"
 %include	"../modules/protect/call_gate.s"
+%include	"../modules/protect/trap_gate.s"
 
 ; Padding
     times KERNEL_SIZE - ($ - $$) db 0x00
