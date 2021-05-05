@@ -11,7 +11,7 @@ get_font_adr:
     ; start program
     mov     si, [bp + 4]    ; si = FONTアドレスの保存先
 
-    mov     ax, 0x1113      ; Get font address
+    mov     ax, 0x1130      ; Get font address
     mov     bh, 0x06        ; 8x16 font (vga/mcga)
     int     10h             ; ES:BP=FONT ADDRESS
 

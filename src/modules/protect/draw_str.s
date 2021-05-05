@@ -20,9 +20,13 @@ draw_str:
     cmp     al, 0
     je      .10E
 
+%ifdef  USE_SYSTEM_CALL
+    int     0x81
+%else
     ; display single word
     cdecl   draw_char, ecx, edx, ebx, eax
-
+%endif
+    
     inc     ecx
     cmp     ecx, 80     ; >= 80
     jl      .12E
