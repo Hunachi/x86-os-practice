@@ -61,6 +61,26 @@
 		pop		eax
 %endmacro
 
+; Setting gate descriptor
+; set_gate(descriptor address, offset)
+%macro  set_gate 2-* 
+		push	eax
+		push	edi
+
+		mov		edi, %1							; discriptor address
+		mov		eax, %2							; offset 
+
+		mov		[edi + 0], ax					; base（[15: 0]）
+		shr		eax, 16							; 
+		mov		[edi + 6], ax					; base（[31:16]）
+
+		pop		edi
+		pop		eax
+%endmacro
+
+
+; ~~ Structure ~~
+
 ; Drive parameter
 struc drive
         .no         resw    1       ; Drive Number
