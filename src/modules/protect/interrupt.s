@@ -36,6 +36,7 @@ init_int:
 
 ; Just infinite loop
 int_stop:
+    sti     ; Enable interrupt
 
     cdecl   draw_str, 25, 15, 0x060F, eax
 

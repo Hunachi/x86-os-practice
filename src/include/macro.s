@@ -33,14 +33,26 @@
 		pop		eax
 %endmacro
 
+; port output
 %macro  outp 2
         mov     al, %2
         out     %1, al
 %endmacro
 
+; Drive parameter
 struc drive
         .no         resw    1       ; Drive Number
         .cyln       resw    1       ; Cylinder
         .head       resw    1       ; HEAD
         .sect       resw    1       ; Sector
+endstruc
+
+; Ring buffer
+%define		RING_ITEM_SIZE		(1 << 4)
+%define		RING_INDEX_MASK		(RING_ITEM_SIZE - 1)
+
+struc ring_buff
+		.rp				resd	1				; RP: read point
+		.wp				resd	1				; WP: write point
+		.item			resb	RING_ITEM_SIZE	; buffer
 endstruc
