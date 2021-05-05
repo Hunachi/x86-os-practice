@@ -14,6 +14,11 @@ kernel:
     add     eax, ebx
     mov     [FONT_ADR], eax
 
+    ; initializetion
+    cdecl   init_int                ; Initialize interrupt vector
+
+    set_vect    0x00, int_zero_dev  ; Apply division by zero's interrupt
+
     ; display fonts
     cdecl   draw_font, 63, 13
     ; display colorbar
@@ -22,35 +27,9 @@ kernel:
     ; draw_str(.s0)
     cdecl   draw_str, 25, 14, 0x010F, .s0
 
-        ; draw line
-	cdecl	draw_line, 100, 100,   0,   0, 0x0F
-	cdecl	draw_line, 100, 100, 200,   0, 0x0F
-	cdecl	draw_line, 100, 100, 200, 200, 0x0F
-	cdecl	draw_line, 100, 100,   0, 200, 0x0F
-
-	cdecl	draw_line, 100, 100,  50,   0, 0x02
-	cdecl	draw_line, 100, 100, 150,   0, 0x03
-	cdecl	draw_line, 100, 100, 150, 200, 0x04
-	cdecl	draw_line, 100, 100,  50, 200, 0x05
-
-	cdecl	draw_line, 100, 100,   0,  50, 0x02
-	cdecl	draw_line, 100, 100, 200,  50, 0x03
-	cdecl	draw_line, 100, 100, 200, 150, 0x04
-    cdecl	draw_line, 100, 100,   0, 150, 0x05
-
-	cdecl	draw_line, 100, 100, 100,   0, 0x0F
-	cdecl	draw_line, 100, 100, 200, 100, 0x0F
-	cdecl	draw_line, 100, 100, 100, 200, 0x0F
-	cdecl	draw_line, 100, 100,   0, 100, 0x0F
-
-    ; draw rect
-    cdecl	draw_rect, 100, 100, 200, 200, 0x03
-	cdecl	draw_rect, 400, 250, 200, 150, 0x05
-	cdecl	draw_rect, 350, 400, 300, 100, 0x06
-
-    push    0x11223344
-    pushf
-    call    0x0008:int_default
+    ; division by zero
+    mov     al, 0
+    div     al
 
     ; draw time
 .10L:											; do
@@ -59,7 +38,6 @@ kernel:
 	cdecl	draw_time, 72, 0, 0x0700,		\
 						dword [RTC_TIME]
 	jmp		.10L
-
 
     jmp     $
 

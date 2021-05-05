@@ -14,6 +14,25 @@
 
 %endmacro
 
+%macro  set_vect 1-*.nolist
+		push	eax
+		push	edi
+
+		mov		edi, VECT_BASE + (%1 * 8)		; vector address
+		mov		eax, %2
+
+		%if 3 == %0
+			mov		[edi + 4], %3				; flag
+		%endif
+
+		mov		[edi + 0], ax					; exception address [15: 0]
+		shr		eax, 16							; 
+		mov		[edi + 6], ax					; exception address [31:16]
+
+		pop		edi
+		pop		eax
+%endmacro
+
 struc drive
         .no         resw    1       ; Drive Number
         .cyln       resw    1       ; Cylinder

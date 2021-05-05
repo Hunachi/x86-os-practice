@@ -22,7 +22,7 @@ kernel:
 
     jmp     $
 
-.s0:    db " Hello, kernel! ", 0
+.s0:    db " Hello, HunachiOS!! ", 0
 
 ALIGN   4,  db 0
 FONT_ADR:   dd 0
