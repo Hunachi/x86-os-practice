@@ -1,3 +1,4 @@
+; Default interrupt.
 int_default:
     pushf
     push    cs
@@ -8,6 +9,7 @@ int_default:
     
 .s0		db	" <    STOP    > ", 0
 
+; Just infinite loop
 int_stop:
 
     cdecl   draw_str, 25, 15, 0x060F, eax
