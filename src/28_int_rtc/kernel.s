@@ -16,8 +16,20 @@ kernel:
 
     ; initializetion
     cdecl   init_int                ; Initialize interrupt vector
+    cdecl   init_pic                ; Initialize interrupt controller
 
     set_vect    0x00, int_zero_dev  ; Apply division by zero's interrupt
+    set_vect    0x28, int_rtc       ; Apply RTC interrupt
+
+    ; Allow Device interrupt
+    cdecl   rtc_int_en, 0x10
+
+    ; Setting IMR(Interrupt mask register)
+    outp    0x21, 0b1111_1011   ; Enable Interrupt: slave PIC 
+    outp    0xA1, 0b1111_1110   ; Enable Interrupt: RTC
+
+    ; Enable CPU Interrupt
+    sti
 
     ; display fonts
     cdecl   draw_font, 63, 13
@@ -27,18 +39,10 @@ kernel:
     ; draw_str(.s0)
     cdecl   draw_str, 25, 14, 0x010F, .s0
 
-    ; software interrupt by zero division
-    int     0
-    ; division by zero
-    ; mov     al, 0
-    ; div     al
-
     ; draw time
-.10L:											; do
-												; {
-	cdecl	rtc_get_time, RTC_TIME			;   EAX = get_time(&RTC_TIME);
-	cdecl	draw_time, 72, 0, 0x0700,		\
-						dword [RTC_TIME]
+.10L:		
+	mov     eax, [RTC_TIME]                 ; Get time
+	cdecl	draw_time, 72, 0, 0x0700, eax   ; display time
 	jmp		.10L
 
     jmp     $
@@ -61,7 +65,9 @@ RTC_TIME:	dd 0
 %include	"../modules/protect/rtc.s"
 %include	"../modules/protect/itoa.s"
 %include	"../modules/protect/draw_time.s"
-%include	"modules/interrupt.s"
+%include	"../modules/protect/interrupt.s"
+%include    "../modules/protect/pic.s"
+%include    "../modules/protect/int_rtc.s"
 
 ; Padding
     times KERNEL_SIZE - ($ - $$) db 0x00
