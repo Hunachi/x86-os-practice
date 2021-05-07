@@ -3,7 +3,7 @@ draw_rotation_bar:
 
     push    eax
 
-    mov     eax, [TIME_COUNT]
+    mov     eax, [TIMER_COUNT]
     shr     eax, 4
     cmp     eax, [.index]
     je      .10E

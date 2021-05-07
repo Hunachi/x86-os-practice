@@ -16,7 +16,7 @@ rtc_get_time:
     
     ; set (0:sec, 2:min, 4:hour, 7:day, 8:month, 9:year) to 0x07
     ; and then get time from 0x71
-.10F
+.10F:
     mov     al, 0x04
     out     0x07, al
     in      al, 0x71
