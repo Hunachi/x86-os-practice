@@ -20,6 +20,7 @@ kernel:
 	; Setting TSS Descriptor
 	set_desc	GDT.tss_0, TSS_0
 	set_desc	GDT.tss_1, TSS_1
+    set_desc	GDT.tss_2, TSS_2
 
     ; Setting call gate
     set_gate    GDT.call_gate, call_gate
@@ -96,6 +97,7 @@ RTC_TIME:	dd 0
 %include	"descriptor.s"
 %include	"modules/int_timer.s"
 %include	"tasks/task_1.s"
+%include	"tasks/task_2.s"
 
 ; Module
 %include    "../modules/protect/vga.s"
@@ -120,6 +122,7 @@ RTC_TIME:	dd 0
 %include	"../modules/protect/trap_gate.s"
 %include	"../modules/protect/test_and_set.s"
 %include	"../modules/protect/int_nm.s"
+%include	"../modules/protect/wait_tick.s"
 
 ; Padding
     times KERNEL_SIZE - ($ - $$) db 0x00

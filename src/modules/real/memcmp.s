@@ -1,4 +1,4 @@
-memcpy:
+memcmp:
     ;  Construct stackframe
     push    bp
     mov     bp, sp
