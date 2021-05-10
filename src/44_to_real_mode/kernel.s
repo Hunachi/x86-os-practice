@@ -95,6 +95,20 @@ kernel:
     je      .10E
     ; Display keycode
     cdecl   draw_key, 2, 29, _KEY_BUFF
+
+    ; When push [1] key
+    mov     al, [.int_key]
+    cmp     al, 0x02
+    jne     .12E
+
+    ; Read a file
+    call    [BOOT_LOAD + BOOT_SIZE - 16]
+
+    ; Display file's contents
+    mov     esi, 0x7800         ; 0x7800にエラ〜メッセージが入ってなさそう😭
+    mov     [esi + 32], byte 0
+    cdecl   draw_str, 0, 0, 0x010F, esi
+.12E:
 .10E:
     jmp     .10L
 

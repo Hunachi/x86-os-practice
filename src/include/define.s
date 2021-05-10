@@ -68,3 +68,56 @@ CR3_TASK_6	equ 	0x0020_4000
 PARAM_TASK_4	equ	0x0010_8000
 PARAM_TASK_5	equ	0x0010_9000
 PARAM_TASK_6	equ	0x0010_A000
+
+
+;	Disk Image
+;(SECT/SUM)  file img                 
+;                       ____________  
+;( 16/  0)   0000_0000 |       (8K) | ブート
+;                      =            = 
+;                      |____________| 
+;( 16/ 16)   0000_2000 |       (8K) | カーネル
+;                      =            = 
+;                      |____________| 
+;(256/ 32)   0000_4000 |     (128K) | FAT-1
+;                      |            | 
+;                      |            | 
+;                      =            = 
+;                      |____________| 
+;(256/288)   0002_4000 |     (128K) | FAT-2
+;                      |            | 
+;                      |            | 
+;                      =            = 
+;                      |____________| 
+;( 32/544)   0004_4000 |      (16K) | ルートディレクトリ領域
+;                      |            | (32セクタ/512エントリ)
+;                      =            = 
+;                      |____________| 
+;(   /576)   0004_8000 |            | データ領域
+;                      |            | 
+;                      =            = 
+;                      |            | 
+;                      |____________| 
+;(   /640)   0005_0000 |////////////| 
+;                      |            | 
+
+FAT_SIZE			equ		(1024 * 128)	; FAT-1/2
+ROOT_SIZE			equ		(1024 *  16)	; ルートディレクトリ領域
+
+ENTRY_SIZE			equ		32				; エントリサイズ
+
+; BOOT イメージは異なるファイルなので、FAT アドレスの定義には加算しない
+FAT_OFFSET			equ		(BOOT_SIZE + KERNEL_SIZE)
+FAT1_START			equ		(KERNEL_SIZE)
+FAT2_START			equ		(FAT1_START + FAT_SIZE)
+ROOT_START			equ		(FAT2_START + FAT_SIZE)
+FILE_START			equ		(ROOT_START + ROOT_SIZE)
+
+; ファイル属性
+ATTR_READ_ONLY		equ		0x01
+ATTR_HIDDEN			equ		0x02
+ATTR_SYSTEM			equ		0x04
+ATTR_VOLUME_ID		equ		0x08
+ATTR_DIRECTORY		equ		0x10
+ATTR_ARCHIVE		equ		0x20
+
