@@ -10,9 +10,9 @@ memcpy:
     
     ; Copy each byte.
     cld
-    mov     di, [bp + 8]
-    mov     si, [bp + 12]
-    mov     cx, [bp + 16]
+    mov     di, [bp + 4]
+    mov     si, [bp + 6]
+    mov     cx, [bp + 8]
 
     rep     movsb ; while (*edi++ == *esi++)
 
